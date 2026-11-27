@@ -1,19 +1,10 @@
 .boxbuilder-builder {
-<<<<<<< HEAD
-    --bb-primary: #d99824;
-    --bb-primary-dark: #e3b460;
-    --bb-primary-light: #f8ecd7;
-    --bb-border: #eeefe6;
-    --bb-text: #24232b;
-    --bb-muted: #777584;
-=======
     --bb-primary: #c0262d;
     --bb-primary-dark: #1e4d2b;
     --bb-primary-light: #e4efd0;
     --bb-border: #d9e6c3;
     --bb-text: #1b3a26;
     --bb-muted: #5f7767;
->>>>>>> main
     --bb-surface: #ffffff;
     --bb-background: #f5f9ee;
 
