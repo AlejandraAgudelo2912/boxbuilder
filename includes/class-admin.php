@@ -47,14 +47,14 @@ class BoxBuilder_Admin {
     public static function get_default_style_options() {
 
         return array(
-            'primary'      => '#6d5bd0',
-            'primary_dark' => '#5542b2',
-            'primary_light' => '#f1efff',
-            'border'        => '#e8e7ef',
-            'text'          => '#24232b',
-            'muted'         => '#777584',
+            'primary'      => '#c0262d',
+            'primary_dark' => '#1e4d2b',
+            'primary_light' => '#e4efd0',
+            'border'        => '#d9e6c3',
+            'text'          => '#1b3a26',
+            'muted'         => '#5f7767',
             'surface'       => '#ffffff',
-            'background'    => '#f7f7fb',
+            'background'    => '#f5f9ee',
         );
     }
 
@@ -247,12 +247,13 @@ class BoxBuilder_Admin {
         $current_mode = 'custom' === $product->get_meta( '_boxbuilder_mode', true )
             ? 'custom'
             : 'fixed';
+        // Las cajas con el antiguo modo «adjusted» se muestran como precio fijo.
         $current_pricing = in_array(
             $product->get_meta( '_boxbuilder_pricing', true ),
             array( 'fixed', 'adjusted' ),
             true
         )
-            ? $product->get_meta( '_boxbuilder_pricing', true )
+            ? 'fixed'
             : 'dynamic';
         $allow_extras = 'no' === $product->get_meta( '_boxbuilder_allow_extras', true )
             ? 'no'
@@ -289,13 +290,12 @@ class BoxBuilder_Admin {
                     array(
                         'id'          => '_boxbuilder_pricing',
                         'label'       => __( 'Sistema de precios', 'boxbuilder-woocommerce' ),
-                        'description' => __( 'El precio fijo usa el precio base; el dinámico suma los productos; el ajustado aplica al precio base la diferencia respecto al contenido predeterminado.', 'boxbuilder-woocommerce' ),
+                        'description' => __( 'Precio fijo: el cliente paga el precio de la caja (campo «Precio» de arriba) más los productos adicionales que añada con el buscador. Suma de productos: la caja no tiene precio propio y el cliente paga la suma de los productos que elija.', 'boxbuilder-woocommerce' ),
                         'desc_tip'    => true,
                         'value'       => $current_pricing,
                         'options'     => array(
-                            'fixed'    => __( 'Precio fijo', 'boxbuilder-woocommerce' ),
-                            'dynamic'  => __( 'Precio dinámico', 'boxbuilder-woocommerce' ),
-                            'adjusted' => __( 'Precio base ± diferencia', 'boxbuilder-woocommerce' ),
+                            'fixed'   => __( 'Precio fijo de la caja', 'boxbuilder-woocommerce' ),
+                            'dynamic' => __( 'Suma de los productos elegidos', 'boxbuilder-woocommerce' ),
                         ),
                     )
                 );
@@ -442,7 +442,7 @@ class BoxBuilder_Admin {
         if ( isset( $_POST['_boxbuilder_pricing'] ) && is_scalar( $_POST['_boxbuilder_pricing'] ) ) {
             $pricing = sanitize_key( wp_unslash( $_POST['_boxbuilder_pricing'] ) );
 
-            if ( in_array( $pricing, array( 'fixed', 'dynamic', 'adjusted' ), true ) ) {
+            if ( in_array( $pricing, array( 'fixed', 'dynamic' ), true ) ) {
                 $product->update_meta_data( '_boxbuilder_pricing', $pricing );
             }
         }

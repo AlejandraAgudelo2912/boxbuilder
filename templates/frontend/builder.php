@@ -20,7 +20,6 @@ if ( ! defined( 'ABSPATH' ) ) {
     data-mode="<?php echo esc_attr( $box_mode ); ?>"
     data-min-products="<?php echo esc_attr( $min_products ); ?>"
     data-max-products="<?php echo esc_attr( $max_products ); ?>"
-    data-reference-total="<?php echo esc_attr( $reference_total ); ?>"
     data-allow-extras="<?php echo esc_attr( $allow_extras ? 'yes' : 'no' ); ?>"
     data-product-id="<?php echo esc_attr( $product->get_id() ); ?>"
     data-ajax-url="<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>"
@@ -205,21 +204,37 @@ if ( ! defined( 'ABSPATH' ) ) {
                 <?php $search_id = wp_unique_id( 'boxbuilder-search-' ); ?>
 
                 <div class="boxbuilder-search">
-                    <label for="<?php echo esc_attr( $search_id ); ?>">
-                        <?php esc_html_e( 'Añade otros productos de la tienda', 'boxbuilder-woocommerce' ); ?>
-                    </label>
-
-                    <input
-                        type="search"
-                        id="<?php echo esc_attr( $search_id ); ?>"
-                        class="boxbuilder-search-input"
-                        placeholder="<?php esc_attr_e( 'Busca por nombre…', 'boxbuilder-woocommerce' ); ?>"
-                        autocomplete="off"
+                    <button
+                        type="button"
+                        class="boxbuilder-search-toggle"
+                        aria-expanded="false"
+                        aria-controls="<?php echo esc_attr( $search_id ); ?>-panel"
                     >
+                        <span class="boxbuilder-search-toggle-icon" aria-hidden="true">+</span>
+                        <span><?php esc_html_e( 'Añadir otros productos de la tienda', 'boxbuilder-woocommerce' ); ?></span>
+                    </button>
 
-                    <p class="boxbuilder-search-status" role="status" hidden></p>
+                    <div
+                        class="boxbuilder-search-panel"
+                        id="<?php echo esc_attr( $search_id ); ?>-panel"
+                        hidden
+                    >
+                        <label for="<?php echo esc_attr( $search_id ); ?>">
+                            <?php esc_html_e( 'Busca un producto', 'boxbuilder-woocommerce' ); ?>
+                        </label>
 
-                    <ul class="boxbuilder-search-results" hidden></ul>
+                        <input
+                            type="search"
+                            id="<?php echo esc_attr( $search_id ); ?>"
+                            class="boxbuilder-search-input"
+                            placeholder="<?php esc_attr_e( 'Busca por nombre…', 'boxbuilder-woocommerce' ); ?>"
+                            autocomplete="off"
+                        >
+
+                        <p class="boxbuilder-search-status" role="status" hidden></p>
+
+                        <ul class="boxbuilder-search-results" hidden></ul>
+                    </div>
                 </div>
             <?php endif; ?>
 

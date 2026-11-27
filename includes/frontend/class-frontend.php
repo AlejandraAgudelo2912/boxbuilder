@@ -221,7 +221,6 @@ class BoxBuilder_Frontend {
         $allow_extras = $product->get_allow_extras();
 
         $box_products    = array();
-        $reference_total = (float) $product->get_reference_value( true );
         $stock_cap       = function ( $candidate ) {
             if ( ! $candidate->managing_stock() || $candidate->backorders_allowed() ) {
                 return '';

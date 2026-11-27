@@ -22,7 +22,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const pricingMode = builder.dataset.pricingMode || 'dynamic';
         const fixedPrice = parseFloat(builder.dataset.fixedPrice) || 0;
-        const referenceTotal = parseFloat(builder.dataset.referenceTotal) || 0;
         const currency = builder.dataset.currency || 'EUR';
         // Intl necesita el formato es-ES; WordPress puede entregar es_ES.
         const locale = (builder.dataset.locale || 'es-ES').replace('_', '-');
@@ -196,8 +195,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (pricingMode === 'fixed') {
                 total = fixedPrice + extrasTotal;
-            } else if (pricingMode === 'adjusted') {
-                total = Math.max(0, fixedPrice + dynamicTotal - referenceTotal);
             }
 
             totalElement.textContent = formatPrice(total);
@@ -626,6 +623,41 @@ document.addEventListener('DOMContentLoaded', function () {
             initialTotal += quantity;
             bindCard(card);
         });
+
+        // Despliegue del buscador con el botón «+».
+        const searchToggle = builder.querySelector('.boxbuilder-search-toggle');
+        const searchPanel = builder.querySelector('.boxbuilder-search-panel');
+
+        if (searchToggle && searchPanel) {
+            searchToggle.addEventListener('click', function () {
+
+                const willOpen = searchPanel.hidden;
+
+                searchPanel.hidden = !willOpen;
+                searchToggle.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+                searchToggle.parentElement.classList.toggle('is-open', willOpen);
+
+                if (willOpen) {
+                    if (searchInput) {
+                        searchInput.focus();
+                    }
+                } else {
+                    // Al cerrar, limpiamos la búsqueda en curso.
+                    window.clearTimeout(searchTimer);
+
+                    if (searchController) {
+                        searchController.abort();
+                    }
+
+                    if (searchInput) {
+                        searchInput.value = '';
+                    }
+
+                    clearSearchResults();
+                    setSearchStatus('');
+                }
+            });
+        }
 
         if (searchInput) {
             searchInput.addEventListener('input', function () {
