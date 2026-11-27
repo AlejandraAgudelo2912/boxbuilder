@@ -374,7 +374,7 @@ class BoxBuilder_Cart {
 
             $component = wc_get_product( $found_id );
 
-            if ( ! $this->is_eligible_component( $component ) ) {
+            if ( ! $box->is_eligible_extra( $component ) ) {
                 continue;
             }
 
@@ -421,7 +421,7 @@ class BoxBuilder_Cart {
         $source_id = $this->get_posted_id( 'source_id' );
         $source    = wc_get_product( $source_id );
 
-        if ( ! $this->is_eligible_component( $source ) ) {
+        if ( ! $box->is_eligible_extra( $source ) ) {
             wp_send_json_error(
                 array( 'message' => __( 'Este producto ya no está disponible para intercambiar.', 'boxbuilder-woocommerce' ) ),
                 400
@@ -448,25 +448,6 @@ class BoxBuilder_Cart {
         }
 
         wp_send_json_success( array( 'results' => $recommendations ) );
-    }
-
-    private function is_eligible_component( $component ) {
-
-        if ( ! $component instanceof WC_Product ) {
-            return false;
-        }
-
-        if ( ! in_array( $component->get_type(), array( 'simple', 'variation' ), true ) ) {
-            return false;
-        }
-
-        return $component->is_purchasable()
-            && $component->is_in_stock()
-            && (
-                ! $component->managing_stock()
-                || $component->backorders_allowed()
-                || $component->has_enough_stock( 1 )
-            );
     }
 
     private function get_stock_cap( $component ) {

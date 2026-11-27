@@ -52,29 +52,6 @@ class WC_Product_BoxBuilder extends WC_Product {
         return 'no' !== $this->get_meta( '_boxbuilder_allow_extras', true );
     }
 
-    public function get_reference_value( $display_prices = false ) {
-
-        $value = 0.0;
-
-        foreach ( $this->get_box_items() as $item_id => $settings ) {
-            if ( $settings['default'] < 1 ) {
-                continue;
-            }
-
-            $item_product = wc_get_product( $item_id );
-
-            if ( $item_product ) {
-                $item_price = $display_prices
-                    ? wc_get_price_to_display( $item_product )
-                    : $item_product->get_price();
-
-                $value += (float) $item_price * $settings['default'];
-            }
-        }
-
-        return $value;
-    }
-
     public function get_box_min() {
 
         return $this->get_min_products();
@@ -88,7 +65,13 @@ class WC_Product_BoxBuilder extends WC_Product {
     public function get_pricing_mode() {
         $mode = $this->get_meta( '_boxbuilder_pricing', true );
 
-        return in_array( $mode, array( 'fixed', 'dynamic', 'adjusted' ), true ) ? $mode : 'dynamic';
+        // El antiguo modo «precio base ± diferencia» (adjusted) se ha eliminado:
+        // las cajas que lo usaban pasan a precio fijo.
+        if ( 'adjusted' === $mode ) {
+            return 'fixed';
+        }
+
+        return in_array( $mode, array( 'fixed', 'dynamic' ), true ) ? $mode : 'dynamic';
     }
 
     public function get_box_items() {
@@ -450,15 +433,17 @@ class WC_Product_BoxBuilder extends WC_Product {
             if ( ! isset( $items[ $slot_id ] ) ) {
                 $extra_product = wc_get_product( $slot_id );
 
-                if (
-                    ( isset( $replacements[ $slot_id ] ) && '' !== $replacements[ $slot_id ] )
-                    || ! $this->is_eligible_extra( $extra_product )
-                ) {
-                    $errors[] = sprintf(
-                        /* translators: %s: nombre del producto. */
-                        __( 'El producto «%s» no forma parte de esta caja o no admite productos adicionales.', 'boxbuilder-woocommerce' ),
-                        $label( $slot_id )
-                    );
+                if ( isset( $replacements[ $slot_id ] ) && '' !== $replacements[ $slot_id ] ) {
+                    $errors[] = $this->get_extra_error_message( 'invalid_type', $slot_id, $extra_product );
+                    continue;
+                }
+
+                // Los extras llegan desde el navegador: se comprueba en el servidor
+                // que existen, están publicados y tienen stock.
+                $extra_error = $this->get_extra_error_code( $extra_product );
+
+                if ( '' !== $extra_error ) {
+                    $errors[] = $this->get_extra_error_message( $extra_error, $slot_id, $extra_product );
                     continue;
                 }
 
@@ -623,13 +608,6 @@ class WC_Product_BoxBuilder extends WC_Product {
             $total += (float) $item_product->get_price() * absint( $quantity );
         }
 
-        if ( 'adjusted' === $pricing ) {
-            $total = max(
-                0,
-                (float) $this->get_price() + $total - $this->get_reference_value()
-            );
-        }
-
         return round( $total, wc_get_price_decimals() );
     }
 
@@ -660,14 +638,137 @@ class WC_Product_BoxBuilder extends WC_Product {
         return true;
     }
 
-    private function is_eligible_extra( $item_product ) {
+    /**
+     * Indica si un producto puede añadirse como extra a esta caja.
+     *
+     * Es la única fuente de verdad: la usan tanto el buscador como la
+     * validación al añadir al carrito y al finalizar la compra.
+     */
+    public function is_eligible_extra( $item_product ) {
 
-        return $this->get_allow_extras()
-            && $item_product instanceof WC_Product
-            && $item_product->get_id() !== $this->get_id()
-            && in_array( $item_product->get_type(), array( 'simple', 'variation' ), true )
-            && $item_product->is_purchasable()
-            && $this->is_item_available( $item_product );
+        return '' === $this->get_extra_error_code( $item_product );
+    }
+
+    /**
+     * Devuelve el motivo por el que un producto NO puede ser un extra,
+     * o una cadena vacía si es válido.
+     *
+     * Códigos: not_allowed, not_found, invalid_type, unpublished,
+     * protected, not_purchasable, out_of_stock.
+     */
+    public function get_extra_error_code( $item_product ) {
+
+        if ( ! $this->get_allow_extras() ) {
+            return 'not_allowed';
+        }
+
+        // El producto no existe (o el ID no pertenece a un producto).
+        if ( ! ( $item_product instanceof WC_Product ) ) {
+            return 'not_found';
+        }
+
+        if (
+            $item_product->get_id() === $this->get_id()
+            || ! in_array( $item_product->get_type(), array( 'simple', 'variation' ), true )
+        ) {
+            return 'invalid_type';
+        }
+
+        // Debe estar publicado (y, si es una variación, también su producto padre).
+        if ( 'publish' !== $item_product->get_status() ) {
+            return 'unpublished';
+        }
+
+        $visibility_id = $item_product->get_id();
+
+        if ( $item_product->is_type( 'variation' ) ) {
+            $parent = wc_get_product( $item_product->get_parent_id() );
+
+            if ( ! $parent || ! $parent->is_type( 'variable' ) ) {
+                return 'invalid_type';
+            }
+
+            if ( 'publish' !== $parent->get_status() ) {
+                return 'unpublished';
+            }
+
+            $visibility_id = $parent->get_id();
+        }
+
+        // Los productos protegidos con contraseña no pueden colarse como extras.
+        if ( '' !== (string) get_post_field( 'post_password', $visibility_id ) ) {
+            return 'protected';
+        }
+
+        if ( ! $item_product->is_purchasable() ) {
+            return 'not_purchasable';
+        }
+
+        // Debe tener stock para, al menos, una unidad.
+        if ( ! $item_product->is_in_stock() ) {
+            return 'out_of_stock';
+        }
+
+        if (
+            $item_product->managing_stock()
+            && ! $item_product->backorders_allowed()
+            && ! $item_product->has_enough_stock( 1 )
+        ) {
+            return 'out_of_stock';
+        }
+
+        return '';
+    }
+
+    private function get_extra_error_message( $code, $product_id, $item_product ) {
+
+        $name = $item_product instanceof WC_Product
+            ? $item_product->get_name()
+            : '#' . absint( $product_id );
+
+        switch ( $code ) {
+            case 'not_found':
+                return sprintf(
+                    /* translators: %s: identificador del producto. */
+                    __( 'El producto %s no existe.', 'boxbuilder-woocommerce' ),
+                    $name
+                );
+
+            case 'unpublished':
+                return sprintf(
+                    /* translators: %s: nombre del producto. */
+                    __( 'El producto «%s» no está publicado.', 'boxbuilder-woocommerce' ),
+                    $name
+                );
+
+            case 'protected':
+                return sprintf(
+                    /* translators: %s: nombre del producto. */
+                    __( 'El producto «%s» no está disponible como producto adicional.', 'boxbuilder-woocommerce' ),
+                    $name
+                );
+
+            case 'not_purchasable':
+                return sprintf(
+                    /* translators: %s: nombre del producto. */
+                    __( 'El producto «%s» no se puede comprar en este momento.', 'boxbuilder-woocommerce' ),
+                    $name
+                );
+
+            case 'out_of_stock':
+                return sprintf(
+                    /* translators: %s: nombre del producto. */
+                    __( 'El producto «%s» está agotado.', 'boxbuilder-woocommerce' ),
+                    $name
+                );
+
+            default:
+                return sprintf(
+                    /* translators: %s: nombre del producto. */
+                    __( 'El producto «%s» no forma parte de esta caja o no admite productos adicionales.', 'boxbuilder-woocommerce' ),
+                    $name
+                );
+        }
     }
 
 }

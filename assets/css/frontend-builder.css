@@ -1,12 +1,12 @@
 .boxbuilder-builder {
-    --bb-primary: #6d5bd0;
-    --bb-primary-dark: #5542b2;
-    --bb-primary-light: #f1efff;
-    --bb-border: #e8e7ef;
-    --bb-text: #24232b;
-    --bb-muted: #777584;
+    --bb-primary: #c0262d;
+    --bb-primary-dark: #1e4d2b;
+    --bb-primary-light: #e4efd0;
+    --bb-border: #d9e6c3;
+    --bb-text: #1b3a26;
+    --bb-muted: #5f7767;
     --bb-surface: #ffffff;
-    --bb-background: #f7f7fb;
+    --bb-background: #f5f9ee;
 
     width: 100%;
     max-width: 1180px;
