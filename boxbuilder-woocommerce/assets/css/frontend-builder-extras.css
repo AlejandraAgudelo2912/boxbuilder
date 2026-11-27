@@ -1,0 +1,196 @@
+/* ========================================
+   BOXBUILDER - BUSCADOR Y MENSAJES
+   (usa las variables --bb-* de frontend-builder.css)
+======================================== */
+
+.boxbuilder-message {
+    margin: 14px 0 0;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: #fdecec;
+    color: #b32d2e;
+    font-size: 13px;
+}
+
+.boxbuilder-message[hidden],
+.boxbuilder-search-panel[hidden],
+.boxbuilder-search-status[hidden],
+.boxbuilder-search-results[hidden] {
+    display: none;
+}
+
+/* Buscador */
+
+.boxbuilder-search {
+    margin: 0 0 18px;
+    padding: 16px;
+    border: 1px solid var(--bb-border);
+    border-radius: 16px;
+    background: var(--bb-surface);
+    box-shadow: 0 4px 16px rgba(36, 35, 43, .035);
+}
+
+.boxbuilder-search-toggle {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--bb-text);
+    font-size: 14px;
+    font-weight: 800;
+    text-align: left;
+    cursor: pointer;
+}
+
+.boxbuilder-search-toggle-icon {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 999px;
+    background: var(--bb-primary);
+    color: #fff;
+    font-size: 22px;
+    font-weight: 400;
+    line-height: 1;
+    transition: background .2s ease, transform .2s ease;
+}
+
+.boxbuilder-search-toggle:hover .boxbuilder-search-toggle-icon {
+    background: var(--bb-primary-dark);
+}
+
+.boxbuilder-search-toggle:focus-visible {
+    outline: 3px solid rgba(192, 38, 45, .25);
+    outline-offset: 4px;
+    border-radius: 10px;
+}
+
+.boxbuilder-search.is-open .boxbuilder-search-toggle-icon {
+    transform: rotate(45deg);
+}
+
+.boxbuilder-search-panel {
+    margin-top: 14px;
+}
+
+.boxbuilder-search label {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--bb-text);
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.boxbuilder-search .boxbuilder-search-input {
+    width: 100%;
+    min-height: 42px;
+    padding: 0 14px;
+    border: 1px solid var(--bb-border);
+    border-radius: 10px;
+    background: var(--bb-background);
+    color: var(--bb-text);
+    font-size: 14px;
+    box-shadow: none;
+}
+
+.boxbuilder-search .boxbuilder-search-input:focus {
+    outline: 3px solid color-mix(in srgb, var(--bb-primary) 25%, transparent);
+    border-color: var(--bb-primary);
+}
+
+.boxbuilder-search-status {
+    margin: 10px 0 0;
+    color: var(--bb-muted);
+    font-size: 13px;
+}
+
+.boxbuilder-search-results {
+    max-height: 340px;
+    margin: 10px 0 0;
+    padding: 0;
+    overflow-y: auto;
+    list-style: none;
+    border: 1px solid var(--bb-border);
+    border-radius: 12px;
+}
+
+.boxbuilder-search-result {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--bb-border);
+    background: var(--bb-surface);
+}
+
+.boxbuilder-search-result:last-child {
+    border-bottom: 0;
+}
+
+.boxbuilder-search-result:hover {
+    background: var(--bb-background);
+}
+
+.boxbuilder-search-result img {
+    flex: none;
+    width: 46px;
+    height: 46px;
+    object-fit: cover;
+    border-radius: 8px;
+    background: var(--bb-background);
+}
+
+.boxbuilder-search-result-name {
+    flex: 1;
+    min-width: 0;
+    color: var(--bb-text);
+    font-size: 14px;
+    overflow-wrap: anywhere;
+}
+
+.boxbuilder-search-result strong {
+    color: var(--bb-primary-dark);
+    font-size: 13px;
+    white-space: nowrap;
+}
+
+.boxbuilder-search-result button {
+    flex: none;
+    padding: 8px 14px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--bb-primary);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: background .2s ease;
+}
+
+.boxbuilder-search-result button:hover {
+    background: var(--bb-primary-dark);
+}
+
+/* Productos añadidos desde el buscador */
+
+.boxbuilder-product-card.is-extra {
+    border-style: dashed;
+}
+
+@media (max-width: 680px) {
+    .boxbuilder-search-result {
+        flex-wrap: wrap;
+    }
+
+    .boxbuilder-search-result-name {
+        flex-basis: calc(100% - 70px);
+    }
+}
